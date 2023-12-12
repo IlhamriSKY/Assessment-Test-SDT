@@ -38,9 +38,9 @@ Method `POST`
 ```
 
 Body 
-```bash
+`bash
 Application/json
-```
+`
 ```json
 {
   "first_name": "Ilham",
@@ -69,9 +69,9 @@ Method `PUT`
 ```
 
 Body 
-```bash
+`
 Application/json
-```
+`
 ```json
 {
   "first_name": "updated first name",
