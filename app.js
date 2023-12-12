@@ -11,7 +11,8 @@ const PORT = process.env.PORT || 3000;
 const server = app.listen(PORT, async () => {
     console.log(`Server is running on port ${PORT}`);
     try {
-        await functions.recoverAndResendMessages();
+        await functions.recoverAndResendMessages('birthday', { hour: 9, minute: 0, second: 0 });
+        // await functions.recoverAndResendMessages('anniversary', { hour: 11, minute: 0, second: 0 });
     } catch (error) {
         console.error('Error during startup recovery:', error.message);
     }
@@ -33,7 +34,8 @@ process.on('uncaughtException', (error) => {
 
 setInterval(async () => {
     try {
-        await functions.checkAndSendBirthdayMessages();
+        await functions.checkAndSendMessages('birthday', { hour: 10, minute: 0, second: 0 });
+        // await functions.checkAndSendMessages('anniversary', { hour: 10, minute: 0, second: 0 });
     } catch (error) {
         console.error('Error in checking and sending birthday messages:', error.message);
     }
