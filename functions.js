@@ -2,7 +2,9 @@ require('dotenv').config();
 const mysql = require('mysql');
 const nodemailer = require('nodemailer');
 const moment = require('moment-timezone');
+const cityTimezones = require('city-timezones');
 
+// Connection
 const connection = mysql.createConnection({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
@@ -10,14 +12,20 @@ const connection = mysql.createConnection({
     database: process.env.DB_DATABASE
 });
 
-connection.connect();
+connection.connect((err) => {
+    if (err) {
+        console.error('Error connecting to database:', err);
+        throw err;
+    }
+    console.log('Connected to database');
+});
 
 // Function to Create New User
 async function createUser(userData) {
     return new Promise((resolve, reject) => {
-        const { first_name, last_name, email, birthday, location, status } = userData;
-        const query = 'INSERT INTO users (first_name, last_name, email, birthday, location, status) VALUES (?, ?, ?, ?, ?, ?)';
-        const values = [first_name, last_name, email, birthday, location, status];
+        const { first_name, last_name, email, birthday, city, status } = userData;
+        const query = 'INSERT INTO users (first_name, last_name, email, birthday, city, status) VALUES (?, ?, ?, ?, ?, ?)';
+        const values = [first_name, last_name, email, birthday, city, status];
 
         connection.query(query, values, (err, result) => {
             if (err) {
@@ -46,7 +54,7 @@ async function checkUserExists(userId) {
 // Function to Get All Users
 async function getAllUsers() {
     return new Promise((resolve, reject) => {
-        const query = 'SELECT id, first_name, last_name, email, birthday, location, status, message_sent, created_at FROM users';
+        const query = 'SELECT id, first_name, last_name, email, birthday, city, status, message_sent, created_at FROM users';
         connection.query(query, (err, results) => {
             if (err) {
                 reject(err);
@@ -78,14 +86,16 @@ async function editUser(userId, updatedFields) {
 }
 
 // Function to Delete User
-function deleteUser(userId) {
-    const query = 'DELETE FROM users WHERE id = ?';
-    connection.query(query, [userId], (err, result) => {
-        if (err) {
-            console.error('Error deleting user:', err);
-        } else {
-            console.log('User deleted successfully');
-        }
+async function deleteUser(userId) {
+    return new Promise((resolve, reject) => {
+        const query = 'DELETE FROM users WHERE id = ?';
+        connection.query(query, [userId], (err, result) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(result);
+            }
+        });
     });
 }
 
@@ -117,12 +127,22 @@ async function sendMessage(user, messageContent, subject) {
 }
 
 // MAIN
+// Function convert City into TimeZone
+async function getTimeZoneByCity(cityName) {
+    const cityLookup = cityTimezones.lookupViaCity(cityName)
+    return cityLookup;
+}
+
 // Function to Send Birthday Message
 async function sendBirthdayMessage(user) {
     try {
-        const now = moment();
-        const userBirthday = moment(user.birthday);
-        const userTime = moment.tz(userBirthday, user.location);
+        const now = moment.tz('Asia/Jakarta');
+        const userTimezone = await getTimeZoneByCity(user.city);
+
+        const userBirthday = moment.tz(user.birthday, 'YYYY-MM-DD', userTimezone[0].timezone);
+        const userTime = moment.tz(userBirthday, userTimezone[0].timezone);
+
+        console.log('test');
 
         if (
             now.isSame(userTime, 'day') &&
@@ -154,6 +174,7 @@ async function sendBirthdayMessage(user) {
         console.error('Error sending birthday message:', error.message);
     }
 }
+
 
 // Function to Update Message Status
 async function updateUserMessageStatus(userId) {
@@ -205,6 +226,7 @@ module.exports = {
     editUser,
     deleteUser,
     sendMessage,
+    getTimeZoneByCity,
     sendBirthdayMessage,
     checkAndSendBirthdayMessages
 };

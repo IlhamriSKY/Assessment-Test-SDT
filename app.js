@@ -7,9 +7,16 @@ const app = express();
 app.use(express.json());
 
 // API to check running services
-app.get('/test', (req, res) => {
-    res.send('Service is running');
+app.get('/test', async (req, res) => {
+    res.send('Service Is Running');
 });
+
+app.get('/test/:city', async (req, res) => {
+    const city = req.params.city;
+    const userTimezone = await functions.getTimeZoneByCity(city);
+    res.send(userTimezone[0].timezone);
+});
+
 
 // API to create a new user
 app.post('/user', async (req, res) => {
@@ -21,7 +28,7 @@ app.post('/user', async (req, res) => {
             last_name: Joi.string().required(),
             email: Joi.string().email().required(),
             birthday: Joi.date().iso().required(),
-            location: Joi.string().required(),
+            city: Joi.string().required(),
             status: Joi.string().valid('active', 'inactive').required()
         });
         const { error } = schema.validate(userData);
@@ -120,8 +127,25 @@ app.post('/send-email', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
+});
+
+// Handle unhandled promise rejections or exceptions
+process.on('unhandledRejection', (error) => {
+    console.error('Unhandled Rejection:', error);
+    // Close server and exit process on unhandled rejection
+    server.close(() => {
+        process.exit(1);
+    });
+});
+
+process.on('uncaughtException', (error) => {
+    console.error('Uncaught Exception:', error);
+    // Close server and exit process on uncaught exception
+    server.close(() => {
+        process.exit(1);
+    });
 });
 
 // Periodically check and send birthday messages for active users every minute
@@ -131,4 +155,4 @@ setInterval(async () => {
     } catch (error) {
         console.error('Error in checking and sending birthday messages:', error.message);
     }
-}, 60 * 1000); // Check every minute
+}, 10 * 1000); // Check every minute
