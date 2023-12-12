@@ -13,6 +13,7 @@ async function isSameHour(hour1, hour2) {
     return moment(hour1, 'HH').isSame(moment(hour2, 'HH'), 'hour');
 }
 
+// Function get After Date
 function isAfter(input1, input2) {
     const date1 = moment(input1, 'DD/MM/YYYY');
     const date2 = moment(input2, 'DD/MM/YYYY');
