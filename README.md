@@ -22,6 +22,10 @@ After successfully installing the dependencies, use the following command to run
    ```bash
    node app
    ```
+   or
+   ```bash
+   pm2 start app
+   ```
 This will run the Node.js application on your local server.
 
 ### 4. Accessing Application
