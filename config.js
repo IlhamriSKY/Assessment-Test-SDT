@@ -1,6 +1,8 @@
 require('dotenv').config();
 const mysql = require('mysql');
-const moment = require('moment-timezone');
+
+// Default Time Zone
+const timezone = 'Asia/Jakarta';
 
 // Connection
 const connection = mysql.createConnection({
@@ -19,5 +21,6 @@ connection.connect((err) => {
 });
 
 module.exports = {
-    connection
+    connection,
+    timezone
 };

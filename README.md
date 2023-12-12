@@ -45,7 +45,7 @@ Application/json
 {
   "first_name": "Ilham",
   "last_name": "Riski",
-  "email": "ilhamrisky21@gmail.com",
+  "email": "email@gmail.com",
   "birthday": "1996-12-12",
   "city": "New York",
   "status": "active"
@@ -56,7 +56,7 @@ or
 {
   "first_name": "Ilham",
   "last_name": "Riski",
-  "email": "ilhamrisky21@gmail.com",
+  "email": "email@gmail.com",
   "birthday": "1996-10-21",
   "city": "Semarang",
   "status": "active"
@@ -96,4 +96,27 @@ Method `GET`
 Method `GET`
 ```bash
 /users
+```
+### 6. Send Email
+Method `POST`
+```bash
+/send-emal
+```
+
+Body 
+`
+Application/json
+`
+```json
+{
+  "email": "email@gmail.com",
+  "subject": "testing",
+  "message": "nice"
+}
+```
+### 7. Change Schedule and Type Message
+add your costume Schedule and Type Message on setInterval
+example
+```javascript
+ await functions.checkAndSendMessages('birthday', { hour: 12, minute: 0, second: 0 });
 ```

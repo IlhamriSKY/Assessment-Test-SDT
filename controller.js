@@ -1,7 +1,9 @@
 const nodemailer = require('nodemailer');
 const moment = require('moment-timezone');
 const cityTimezones = require('city-timezones');
-const { connection } = require('./config');
+const { timezone, connection } = require('./config');
+const helper = require('./helper');
+
 
 // Function to Create New User
 async function createUser(userData) {
@@ -110,11 +112,11 @@ async function sendMessage(user, messageContent, subject) {
 }
 
 // Function to Recovery Seending Message
-async function recoverAndResendMessages(messageType, sendTime) {
+async function recoverAndResendMessages(messageType) {
     try {
         const unsentUsers = await fetchUsersWithUnsentMessages();
         for (const user of unsentUsers) {
-            await sendScheduleMessage(user, messageType, sendTime);
+            await sendRecoveryMessage(user, messageType);
         }
     } catch (error) {
         console.error(`Error recovering and resending ${messageType} messages:`, error.message);
@@ -127,29 +129,21 @@ async function getTimeZoneByCity(cityName) {
     return cityLookup;
 }
 
-// Function to Send Messages
+// Function to Send Schedule Messages
 async function sendScheduleMessage(user, messageType, sendTime) {
     try {
-        const now = moment.tz('Asia/Jakarta');
-        console.log('Current time in Jakarta:', now.format('DD/MM/YYYY HH:mm:ss'));
+        const now = moment.tz(timezone);
 
         const userTimezone = await getTimeZoneByCity(user.city);
         const nowTimeZone = moment.tz(userTimezone[0].timezone);
-        console.log('Current time by Time Zone:', nowTimeZone.format('DD/MM/YYYY HH:mm:ss'));
 
-        const userDateTime = moment.tz(user[messageType], 'YYYY-MM-DD', 'UTC');
-        const userTime = userDateTime.clone().tz(userTimezone[0].timezone);
-        console.log('User datetime in user timezone:', userTime.format());
+        const getUserBirthday = moment.utc(user.birthday).utcOffset(0);
+        const UserBirthday = moment.tz(getUserBirthday, timezone);
 
-        // Set message sending time in user's local time zone
-        userTime.hour(sendTime.hour).minute(sendTime.minute).second(sendTime.second);
-        console.log('Scheduled sending time in user timezone:', userTime.format('DD/MM/YYYY HH:mm:ss'));
-        
-        if (
-            now.isSame(userTime, 'day') &&
-            now.isSameOrAfter(userTime) &&
-            user.message_sent_status === 0
-        ) {
+        const getDay = await helper.isSameMonthAndDay(now.format('YYYY-MM-DD'), UserBirthday.format('YYYY-MM-DD'));
+        const getHour = await helper.isSameHour(nowTimeZone.format('HH'), sendTime.hour);
+
+        if (getDay === true && getHour === true && user.message_sent_status === 0) {
             const transporter = nodemailer.createTransport({
                 service: process.env.SMTP_SERVICE,
                 auth: {
@@ -165,11 +159,51 @@ async function sendScheduleMessage(user, messageType, sendTime) {
                 text: `Hey, ${user.first_name} ${user.last_name}, it's your ${messageType}!`
             };
 
+            // Update respective message status
+            await updateUserMessageStatus(user.id);
+
             const info = await transporter.sendMail(mailOptions);
             console.log('Email sent:', info.response);
+        }
+    } catch (error) {
+        console.error(`Error sending ${messageType} message:`, error.message);
+    }
+}
+
+// Function to Send Recovery Messages
+async function sendRecoveryMessage(user, messageType) {
+    try {
+        const now = moment.tz(timezone);
+
+        const userTimezone = await getTimeZoneByCity(user.city);
+        const nowTimeZone = moment.tz(userTimezone[0].timezone);
+
+        const getUserBirthday = moment.utc(user.birthday).utcOffset(0);
+        const UserBirthday = moment.tz(getUserBirthday, timezone);
+
+        const getAfter = helper.isAfter(now.format('DD/MM/YYYY'), UserBirthday.format('DD/MM/YYYY'));
+
+        if (getAfter === true) {
+            const transporter = nodemailer.createTransport({
+                service: process.env.SMTP_SERVICE,
+                auth: {
+                    user: process.env.SMTP_EMAIL,
+                    pass: process.env.SMTP_PASSWORD
+                }
+            });
+
+            const mailOptions = {
+                from: process.env.SMTP_FROM,
+                to: user.email,
+                subject: `Happy ${messageType.charAt(0).toUpperCase() + messageType.slice(1)}!`,
+                text: `Hey, ${user.first_name} ${user.last_name}, it's your ${messageType}!`
+            };
 
             // Update respective message status
-            await updateUserMessageStatus(user.id, `${messageType}_sent_status`);
+            await updateUserMessageStatus(user.id);
+
+            const info = await transporter.sendMail(mailOptions);
+            console.log('Email sent:', info.response);
         }
     } catch (error) {
         console.error(`Error sending ${messageType} message:`, error.message);
@@ -210,6 +244,7 @@ async function fetchUsersWithUnsentMessages() {
 async function checkAndSendMessages(messageType, sendTime) {
     const now = moment.tz('Asia/Jakarta');
     console.log(`Check ${messageType} ${now}`);
+    await recoverAndResendMessages('birthday');
     try {
         const users = await fetchActiveUsers();
         for (const user of users) {
@@ -243,6 +278,7 @@ module.exports = {
     recoverAndResendMessages,
     getTimeZoneByCity,
     sendScheduleMessage,
+    sendRecoveryMessage,
     updateUserMessageStatus,
     fetchUsersWithUnsentMessages,
     checkAndSendMessages,
