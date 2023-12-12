@@ -38,7 +38,7 @@ Method `POST`
 ```
 
 Body 
-`bash
+`
 Application/json
 `
 ```json
