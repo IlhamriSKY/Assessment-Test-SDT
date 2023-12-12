@@ -6,7 +6,7 @@ This is a simple Node.js-based application that requires a few steps to run corr
 
 ### 1. Setting Up Database and Credentials
 
-Import `users.sql` to your database
+Import `users.sql` to your database,
 Copy ```.env.example``` to ```.env``` and set your credentials there.
 
 ### 2. Installing Dependencies
