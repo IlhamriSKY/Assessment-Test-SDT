@@ -32,14 +32,14 @@ Note: Ensure there are no errors during the installation process or when running
 ### 5. API call
 
 #### 1. Create User
-`POST` 
+Method `POST` 
 ```bash
 /user
 ```
 
 Body 
 ```bash
-Aplication/json
+Application/json
 ```
 ```json
 {
@@ -63,14 +63,14 @@ or
 }
 ```
 #### 2. Update
-`PUT`
+Method `PUT`
 ```bash
 /user/:id
 ```
 
 Body 
 ```bash
-Aplication/json
+Application/json
 ```
 ```json
 {
@@ -83,17 +83,17 @@ Aplication/json
 }
 ```
 #### 3. Delete
-`DELETE`
+Method `DELETE`
 ```bash
 /delete/:id
 ```
 #### 4. Select
-`GET`
+Method `GET`
 ```bash
 /user/:id
 ```
 #### 5. Select All
-`GET`
+Method `GET`
 ```bash
 /users
 ```
