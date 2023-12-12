@@ -1,12 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <title>Panduan Menjalankan Aplikasi Node.js</title>
-</head>
-
-<body>
     <h1>Panduan Menjalankan Aplikasi Node.js</h1>
     <p>Ini adalah aplikasi sederhana berbasis Node.js yang memerlukan beberapa langkah untuk dijalankan dengan benar.</p>
 
@@ -35,6 +26,3 @@
     <p>Jika ada pertanyaan lebih lanjut, jangan ragu untuk membuat isu atau menghubungi saya.</p>
 
     <p>Selamat menggunakan!</p>
-</body>
-
-</html>
