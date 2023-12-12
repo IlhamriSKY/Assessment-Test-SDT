@@ -127,5 +127,5 @@ example
 ```
 or
 ```javascript
-   await functions.checkAndSendMessages('anniversary', { hour: 10, minute: 0, second: 0 });
+ await functions.checkAndSendMessages('anniversary', { hour: 10, minute: 0, second: 0 });
 ```
