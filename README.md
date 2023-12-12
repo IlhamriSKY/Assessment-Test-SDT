@@ -30,11 +30,11 @@ This will run the Node.js application on your local server.
 
 ### 4. Accessing Application
 
-Once you've executed the above command, the application will run, and you can access it through a web browser by opening `http://localhost:port`, where the `port` (default 3000) is the port defined in your application.
+Once you've executed the above command, the application will run, and you can access it through a web browser by opening `http://localhost:port/test`, where the `port` (default 3000) is the port defined in your application.
 
 Note: Ensure there are no errors during the installation process or when running the application. If you encounter any issues, check for error messages or logs that appear in the terminal or command prompt.
 
-### 5. API call
+### 5. API Call
 
 #### 1. Create User
 Method `POST` 
@@ -102,7 +102,7 @@ Method `GET`
 ```bash
 /users
 ```
-### 6. Send Email
+#### 6. Send Email
 Method `POST`
 ```bash
 /send-emal
@@ -119,7 +119,7 @@ Application/json
   "message": "nice"
 }
 ```
-### 7. Change Schedule and Type Message
+#### 7. Change Schedule and Type Message
 add your costume Schedule and Type Message on setInterval
 example
 ```javascript
