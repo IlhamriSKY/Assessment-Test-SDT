@@ -4,8 +4,9 @@ This is a simple Node.js-based application that requires a few steps to run corr
 
 ## Steps
 
-### 1. Setting Up Credentials
+### 1. Setting Up Database and Credentials
 
+Import `users.sql` to your database
 Copy ```.env.example``` to ```.env``` and set your credentials there.
 
 ### 2. Installing Dependencies
@@ -118,5 +119,9 @@ Application/json
 add your costume Schedule and Type Message on setInterval
 example
 ```javascript
- await functions.checkAndSendMessages('birthday', { hour: 12, minute: 0, second: 0 });
+ await functions.checkAndSendMessages('birthday', { hour: 9, minute: 0, second: 0 });
+```
+or
+```javascript
+   await functions.checkAndSendMessages('anniversary', { hour: 10, minute: 0, second: 0 });
 ```

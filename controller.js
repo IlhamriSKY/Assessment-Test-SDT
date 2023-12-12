@@ -175,9 +175,6 @@ async function sendRecoveryMessage(user, messageType) {
     try {
         const now = moment.tz(timezone);
 
-        const userTimezone = await getTimeZoneByCity(user.city);
-        const nowTimeZone = moment.tz(userTimezone[0].timezone);
-
         const getUserBirthday = moment.utc(user.birthday).utcOffset(0);
         const UserBirthday = moment.tz(getUserBirthday, timezone);
 
@@ -244,7 +241,7 @@ async function fetchUsersWithUnsentMessages() {
 async function checkAndSendMessages(messageType, sendTime) {
     const now = moment.tz('Asia/Jakarta');
     console.log(`Check ${messageType} ${now}`);
-    await recoverAndResendMessages('birthday');
+    await recoverAndResendMessages(messageType);
     try {
         const users = await fetchActiveUsers();
         for (const user of users) {
