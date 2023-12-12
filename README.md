@@ -15,9 +15,9 @@ First, ensure you have installed Node.js on your computer. After that, open the 
 
 3. **Running Application**
 After successfully installing the dependencies, use the following command to run the application:
-```bash
-node app
-```
+    ```bash
+    node app
+    ```
 This will run the Node.js application on your local server.
 
 4. **Accessing Application**
