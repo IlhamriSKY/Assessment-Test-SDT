@@ -1,24 +1,7 @@
-require('dotenv').config();
-const mysql = require('mysql');
 const nodemailer = require('nodemailer');
 const moment = require('moment-timezone');
 const cityTimezones = require('city-timezones');
-
-// Connection
-const connection = mysql.createConnection({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_DATABASE
-});
-
-connection.connect((err) => {
-    if (err) {
-        console.error('Error connecting to database:', err);
-        throw err;
-    }
-    console.log('Connected to database');
-});
+const { connection } = require('./config');
 
 // Function to Create New User
 async function createUser(userData) {
@@ -126,7 +109,18 @@ async function sendMessage(user, messageContent, subject) {
     }
 }
 
-// MAIN
+// Function to Recovery Seending Message
+async function recoverAndResendMessages() {
+    try {
+        const unsentUsers = await fetchUsersWithUnsentMessages();
+        for (const user of unsentUsers) {
+            await sendBirthdayMessage(user, process.env.HOUR_SEND);
+        }
+    } catch (error) {
+        console.error('Error recovering and resending messages:', error.message);
+    }
+}
+
 // Function convert City into TimeZone
 async function getTimeZoneByCity(cityName) {
     const cityLookup = cityTimezones.lookupViaCity(cityName)
@@ -139,14 +133,15 @@ async function sendBirthdayMessage(user, HourSend) {
         const now = moment.tz('Asia/Jakarta');
         const userTimezone = await getTimeZoneByCity(user.city);
 
-        const userBirthday = moment.tz(user.birthday, 'YYYY-MM-DD', userTimezone[0].timezone);
-        const userTime = moment.tz(userBirthday, userTimezone[0].timezone);
+        const userBirthday = moment.tz(user.birthday, 'YYYY-MM-DD', 'UTC');
+        const userTime = userBirthday.clone().tz(userTimezone[0].timezone);
 
         if (
             now.isSame(userTime, 'day') &&
             now.hours() === parseInt(HourSend, 10) &&
-            !user.message_sent_status
+            user.message_sent_status === 0
         ) {
+            console.log('a');
             const transporter = nodemailer.createTransport({
                 service: process.env.SMTP_SERVICE,
                 auth: {
@@ -165,13 +160,12 @@ async function sendBirthdayMessage(user, HourSend) {
             const info = await transporter.sendMail(mailOptions);
             console.log('Email sent:', info.response);
 
-            await updateUserMessageStatus(user.id);
+            await updateUserMessageStatus(user.id); // Perbarui status pesan terkirim
         }
     } catch (error) {
         console.error('Error sending birthday message:', error.message);
     }
 }
-
 
 
 // Function to Update Message Status
@@ -207,7 +201,7 @@ async function fetchUsersWithUnsentMessages() {
 // Function to Check and Send Birthday Messages
 async function checkAndSendBirthdayMessages() {
     const now = moment.tz('Asia/Jakarta');
-    console.log(now);
+    console.log(`Check ${now}`);
     try {
         const users = await fetchActiveUsers();
         for (const user of users) {
@@ -231,7 +225,6 @@ async function fetchActiveUsers() {
     });
 }
 
-
 module.exports = {
     createUser,
     checkUserExists,
@@ -239,9 +232,11 @@ module.exports = {
     editUser,
     deleteUser,
     sendMessage,
+    recoverAndResendMessages,
     getTimeZoneByCity,
     sendBirthdayMessage,
-    checkAndSendBirthdayMessages,
+    updateUserMessageStatus,
     fetchUsersWithUnsentMessages,
-    updateUserMessageStatus
+    checkAndSendBirthdayMessages,
+    fetchActiveUsers
 };
