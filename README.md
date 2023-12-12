@@ -32,10 +32,15 @@ Note: Ensure there are no errors during the installation process or when running
 ### 5. API call
 
 #### 1. Create User
-EndPoint
-`\user`
+`POST` 
+```bash
+/user
+```
 
-Body Aplication/json
+Body 
+```bash
+Aplication/json
+```
 ```json
 {
   "first_name": "Ilham",
@@ -56,4 +61,39 @@ or
   "city": "Semarang",
   "status": "active"
 }
+```
+#### 2. Update
+`PUT`
+```bash
+/user/:id
+```
+
+Body 
+```bash
+Aplication/json
+```
+```json
+{
+  "first_name": "updated first name",
+  "last_name": "updated last name",
+  "email": "updated email",
+  "birthday": "updated birtday",
+  "city": "updated city",
+  "status": "updated status"
+}
+```
+#### 3. Delete
+`DELETE`
+```bash
+/delete/:id
+```
+#### 4. Select
+`GET`
+```bash
+/user/:id
+```
+#### 5. Select All
+`GET`
+```bash
+/users
 ```
