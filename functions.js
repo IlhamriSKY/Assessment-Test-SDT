@@ -54,7 +54,7 @@ async function checkUserExists(userId) {
 // Function to Get All Users
 async function getAllUsers() {
     return new Promise((resolve, reject) => {
-        const query = 'SELECT id, first_name, last_name, email, birthday, city, status, message_sent, created_at FROM users';
+        const query = 'SELECT id, first_name, last_name, email, birthday, city, status, message_sent_status, message_sent, created_at FROM users';
         connection.query(query, (err, results) => {
             if (err) {
                 reject(err);
@@ -134,7 +134,7 @@ async function getTimeZoneByCity(cityName) {
 }
 
 // Function to Send Birthday Message
-async function sendBirthdayMessage(user) {
+async function sendBirthdayMessage(user, HourSend) {
     try {
         const now = moment.tz('Asia/Jakarta');
         const userTimezone = await getTimeZoneByCity(user.city);
@@ -142,13 +142,10 @@ async function sendBirthdayMessage(user) {
         const userBirthday = moment.tz(user.birthday, 'YYYY-MM-DD', userTimezone[0].timezone);
         const userTime = moment.tz(userBirthday, userTimezone[0].timezone);
 
-        console.log('test');
-
         if (
             now.isSame(userTime, 'day') &&
-            now.hours() === 9 &&
-            now.minutes() === 0 &&
-            !user.message_sent
+            now.hours() === parseInt(HourSend, 10) &&
+            !user.message_sent_status
         ) {
             const transporter = nodemailer.createTransport({
                 service: process.env.SMTP_SERVICE,
@@ -176,11 +173,12 @@ async function sendBirthdayMessage(user) {
 }
 
 
+
 // Function to Update Message Status
 async function updateUserMessageStatus(userId) {
     try {
         await new Promise((resolve, reject) => {
-            connection.query('UPDATE users SET message_sent = ? WHERE id = ?', [true, userId], (err) => {
+            connection.query('UPDATE users SET message_sent_status = ?, message_sent = NOW() WHERE id = ?', [true, userId], (err) => {
                 if (err) {
                     reject(err);
                 } else {
@@ -193,12 +191,27 @@ async function updateUserMessageStatus(userId) {
     }
 }
 
+// Function to Fetch Users with Unsents Messages
+async function fetchUsersWithUnsentMessages() {
+    return new Promise((resolve, reject) => {
+        connection.query('SELECT * FROM users WHERE message_sent_status = ?', [false], (err, results) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(results);
+            }
+        });
+    });
+}
+
 // Function to Check and Send Birthday Messages
 async function checkAndSendBirthdayMessages() {
+    const now = moment.tz('Asia/Jakarta');
+    console.log(now);
     try {
         const users = await fetchActiveUsers();
         for (const user of users) {
-            await sendBirthdayMessage(user);
+            await sendBirthdayMessage(user, process.env.HOUR_SEND);
         }
     } catch (error) {
         console.error('Error in checking and sending birthday messages:', error.message);
@@ -228,5 +241,7 @@ module.exports = {
     sendMessage,
     getTimeZoneByCity,
     sendBirthdayMessage,
-    checkAndSendBirthdayMessages
+    checkAndSendBirthdayMessages,
+    fetchUsersWithUnsentMessages,
+    updateUserMessageStatus
 };

@@ -126,10 +126,30 @@ app.post('/send-email', async (req, res) => {
     }
 });
 
+// Function to Recovery Seending Message
+async function recoverAndResendMessages() {
+    try {
+        const unsentUsers = await functions.fetchUsersWithUnsentMessages();
+        for (const user of unsentUsers) {
+            await functions.sendBirthdayMessage(user, process.env.HOUR_SEND);
+        }
+    } catch (error) {
+        console.error('Error recovering and resending messages:', error.message);
+    }
+}
+
+// Start server and perform recovery routine
 const PORT = process.env.PORT || 3000;
-const server = app.listen(PORT, () => {
+const server = app.listen(PORT, async () => {
     console.log(`Server is running on port ${PORT}`);
+    try {
+        // Attempt to recover and resend unsent messages
+        await recoverAndResendMessages();
+    } catch (error) {
+        console.error('Error during startup recovery:', error.message);
+    }
 });
+
 
 // Handle unhandled promise rejections or exceptions
 process.on('unhandledRejection', (error) => {
